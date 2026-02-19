@@ -1,0 +1,12 @@
+# environment
+**/.env
+
+# dependencies
+node_modules/
+
+# JetBrains IDE
+.idea/
+
+# logs
+npm-debug.log*
+
