@@ -12,7 +12,7 @@ const generateToken = (user) => {
 };
 
 exports.signup = async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    const { email, password } = req.body;
 
     try {
         let user = await User.findOne({ email });
@@ -21,10 +21,8 @@ exports.signup = async (req, res) => {
         }
 
         user = new User({
-            name,
             email,
-            password,
-            phone
+            password
         });
 
         await user.save();
@@ -32,6 +30,49 @@ exports.signup = async (req, res) => {
         const token = generateToken(user);
 
         res.status(201).json({ con: true, msg: 'User registered successfully', token, user });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.updateInterests = async (req, res) => {
+    const { prefer_genres } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ con: false, msg: 'User not found' });
+        }
+
+        user.prefer_genres = prefer_genres;
+        await user.save();
+
+        res.json({ con: true, msg: 'Interests updated successfully', user });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    const { name, phone } = req.body;
+    // Note: Photo handling might need multer or similar if it's a file upload, 
+    // but assuming it's a URL or string for now as per simple fix request.
+    const photo = req.body.photo;
+
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ con: false, msg: 'User not found' });
+        }
+
+        if (name) user.name = name;
+        if (phone) user.phone = phone;
+        if (photo) user.photo = photo;
+
+        await user.save();
+
+        res.json({ con: true, msg: 'Profile updated successfully', user });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
