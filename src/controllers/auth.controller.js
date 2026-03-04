@@ -55,7 +55,7 @@ exports.updateInterests = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-    const { name, phone } = req.body;
+    const { name, phone, dateOfBirth } = req.body;
     // Note: Photo handling might need multer or similar if it's a file upload, 
     // but assuming it's a URL or string for now as per simple fix request.
     const photo = req.body.photo;
@@ -69,6 +69,7 @@ exports.updateProfile = async (req, res) => {
         if (name) user.name = name;
         if (phone) user.phone = phone;
         if (photo) user.photo = photo;
+        if (dateOfBirth) user.dateOfBirth = dateOfBirth;
 
         await user.save();
 

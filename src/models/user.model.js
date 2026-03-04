@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     githubId: { type: String, unique: true, sparse: true }, // For GitHub OAuth
     photo: { type: String },
     phone: { type: String },
+    dateOfBirth: { type: Date },
     prefer_genres: [{ type: String }],
     watchlist: [{
         type: mongoose.Schema.Types.ObjectId,
