@@ -25,6 +25,8 @@ const saveMovies = async (tmdbMovies) => {
             title: tmdbMovies.title,
             releaseDate: tmdbMovies.release_date,
             rating: tmdbMovies.vote_average,
+            voteAverage: tmdbMovies.vote_average,
+            voteCount: tmdbMovies.vote_count,
             overview: tmdbMovies.overview,
             posterPath: tmdbMovies.poster_path,
             backdropPath: tmdbMovies.backdrop_path,

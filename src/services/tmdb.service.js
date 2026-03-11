@@ -5,6 +5,7 @@ const { baseUrl, accessToken } = require('../config/tmdb');
 
 const tmdbClient = axios.create({
     baseURL: baseUrl,
+    timeout: 15000,
     headers: {
         Authorization: accessToken,
     }
@@ -21,18 +22,18 @@ let getTeaser = async (movieId) => {
 }
 
 let getImages = async(movieId) => {
-    const response = await tmdbClient.get(`movie/${movieId}/images`);
+    const response = await tmdbClient.get(`/movie/${movieId}/images`);
     return response.data.backdrops;
 }
 
 let getGenres = async (movieId) => {
-    const response = await tmdbClient.get(`movie/${movieId}`);
+    const response = await tmdbClient.get(`/movie/${movieId}`);
     return response.data.genres;
     
 }
 
 let getCasters = async(movieId) => {
-    const response = await tmdbClient.get(`movie/${movieId}/credits`);
+    const response = await tmdbClient.get(`/movie/${movieId}/credits`);
     return response.data.cast
 }
 

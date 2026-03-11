@@ -1,28 +1,15 @@
-const { getNowPlaying } = require('../services/tmdb.service');
-const { saveMovies } = require('../services/movie.service');
-const { generateTimeSlots } = require('../services/timeslot.service');
+const { syncWeeklyNowPlaying } = require('../services/weeklySync.service');
 const { formatMessage } = require("../utils/utils");
 const TimeSlot = require("../models/timeSlot.model");
 const Movie = require("../models/movie.model");
+const asyncHandler = require('../utils/asyncHandler');
 
-const syncNowPlaying = async (req, res) => {
-    const movies = await getNowPlaying();
-    const firstFiveMovies = movies.slice(0, 5);
+const syncNowPlaying = asyncHandler(async (req, res) => {
+    const result = await syncWeeklyNowPlaying();
+    formatMessage(res, "Movies & TimeSlots synced", result);
+});
 
-    const savedMovies = [];
-
-    for (const movie of firstFiveMovies) {
-        const savedMovie = await saveMovies(movie);
-        savedMovies.push(savedMovie);
-    }
-
-    // Generate timeslots
-    await generateTimeSlots(savedMovies);
-
-    formatMessage(res, "Movies & TimeSlots synced", savedMovies);
-};
-
-const getCinemasByMovie = async (req, res) => {
+const getCinemasByMovie = asyncHandler(async (req, res) => {
     const { movieId } = req.params;
 
     const slots = await TimeSlot.find({ movie: movieId })
@@ -30,7 +17,7 @@ const getCinemasByMovie = async (req, res) => {
             path: 'hall',
             populate: { path: 'cinema' }
         });
-    console.log(slots)
+
     const cinemaMap = new Map();
     slots.forEach(slot => {
         // guard clauses
@@ -42,13 +29,13 @@ const getCinemasByMovie = async (req, res) => {
     });
 
     formatMessage(res, "Cinemas Showing Movie", [...cinemaMap.values()]);
-};
+});
 
 
-let getNowPlayingMovie = async (req, res) => {
-    let result = await Movie.find()
-    formatMessage(res, "Now Playing Movie", result)
-}
+const getNowPlayingMovie = asyncHandler(async (req, res) => {
+    const result = await Movie.find().sort({ createdAt: -1 });
+    formatMessage(res, "Now Playing Movie", result);
+});
 
 module.exports = {
     syncNowPlaying,

@@ -1,7 +1,8 @@
 const TimeSlot = require('../models/timeSlot.model');
 const { formatMessage } = require('../utils/utils');
+const asyncHandler = require('../utils/asyncHandler');
 
-const getTimeSlotsByMovieAndCinema = async (req, res) => {
+const getTimeSlotsByMovieAndCinema = asyncHandler(async (req, res) => {
     const { movieId, cinemaId } = req.params;
 
     const slots = await TimeSlot.find({ movie: movieId })
@@ -15,7 +16,7 @@ const getTimeSlotsByMovieAndCinema = async (req, res) => {
     const filtered = slots.filter(slot => slot.hall);
 
     formatMessage(res, "TimeSlots", filtered);
-};
+});
 
 module.exports = {
     getTimeSlotsByMovieAndCinema

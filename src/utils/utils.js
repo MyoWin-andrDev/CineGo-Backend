@@ -1,9 +1,10 @@
-let formatMessage = (res, msg , result) => {
-    res.status(200).send({
-        conn : true,
-        msg : msg,
-        result: result
-    })
-}
+const formatMessage = (res, msg, result, statusCode = 200) => {
+    res.status(statusCode).json({
+        con: true,
+        conn: true,
+        msg,
+        result
+    });
+};
 
-module.exports = { formatMessage }
+module.exports = { formatMessage };
