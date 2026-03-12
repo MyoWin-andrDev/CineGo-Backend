@@ -1,4 +1,33 @@
 module.exports = {
+    SeatReservation: {
+        type: 'object',
+        properties: {
+            _id: {
+                type: 'string',
+                example: '67d0512c66b5c2f5606a5a20'
+            },
+            showtime: {
+                type: 'string',
+                example: '67d04e8458707f2a13f50d66'
+            },
+            booking: {
+                type: 'string',
+                example: '67d0512c66b5c2f5606a5a1f'
+            },
+            seatId: {
+                type: 'string',
+                example: 'A1'
+            },
+            createdAt: {
+                type: 'string',
+                format: 'date-time'
+            },
+            updatedAt: {
+                type: 'string',
+                format: 'date-time'
+            }
+        }
+    },
     Booking: {
         type: 'object',
         properties: {

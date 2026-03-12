@@ -49,6 +49,7 @@ module.exports = {
             get: {
                 tags: ['TimeSlots'],
                 summary: 'Get seat availability by showtime',
+                description: 'Returns reserved seats from seat_reservation and a computed seat map for the hall layout.',
                 parameters: [
                     {
                         name: 'showtimeId',
