@@ -19,6 +19,20 @@ module.exports = {
                 type: 'number',
                 example: 110,
             },
+            seatLayout: {
+                type: 'object',
+                properties: {
+                    rowLabels: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        example: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
+                    },
+                    seatsPerRow: {
+                        type: 'number',
+                        example: 10,
+                    },
+                },
+            },
             createdAt: {
                 type: 'string',
                 format: 'date-time',

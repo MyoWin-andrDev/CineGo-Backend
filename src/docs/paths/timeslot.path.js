@@ -64,5 +64,44 @@ module.exports = {
                 },
             },
         },
+        '/api/v1/timeslot/{showtimeId}/seats': {
+            get: {
+                tags: ['TimeSlots'],
+                summary: 'Get seat availability by showtime',
+                parameters: [
+                    {
+                        name: 'showtimeId',
+                        in: 'path',
+                        required: true,
+                        schema: {
+                            type: 'string',
+                        },
+                        description: 'MongoDB Showtime ID',
+                    },
+                ],
+                responses: {
+                    200: {
+                        description: 'Seat availability',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        con: { type: 'boolean', example: true },
+                                        msg: { type: 'string', example: 'Seat availability' },
+                                        result: {
+                                            $ref: '#/components/schemas/SeatAvailabilityResponse',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    404: {
+                        description: 'Showtime not found',
+                    },
+                },
+            },
+        },
     },
 };

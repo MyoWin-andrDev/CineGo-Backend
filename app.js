@@ -11,6 +11,7 @@ const timeslotRouter = require('./src/routes/timeslot.route');
 const hallRouter = require('./src/routes/hall.route');
 const authRouter = require('./src/routes/auth.route');
 const chatRouter = require('./src/routes/chat.route');
+const bookingRouter = require('./src/routes/booking.route');
 
 
 //Swagger
@@ -23,6 +24,7 @@ app.use('/api/v1/timeslot', timeslotRouter);
 app.use('/api/v1/hall', hallRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/chat', chatRouter);
+app.use('/api/v1/booking', bookingRouter);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
