@@ -1,24 +1,5 @@
 module.exports = {
     paths: {
-        '/api/v1/timeslot': {
-            get: {
-                tags: ['TimeSlots'],
-                summary: 'Get all time slots',
-                responses: {
-                    200: {
-                        description: 'Time slot list',
-                        content: {
-                            'application/json': {
-                                schema: {
-                                    type: 'array',
-                                    items: { $ref: '#/components/schemas/TimeSlot' },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
         '/api/v1/timeslot/{movieId}/cinema/{cinemaId}': {
             get: {
                 tags: ['TimeSlots'],

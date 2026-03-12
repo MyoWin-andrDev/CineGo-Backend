@@ -127,5 +127,93 @@ module.exports = {
                 },
             },
         },
+        '/api/v1/auth/update-interests': {
+            put: {
+                tags: ['Auth'],
+                summary: 'Update user preferred genres',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['prefer_genres'],
+                                properties: {
+                                    prefer_genres: {
+                                        type: 'array',
+                                        items: { type: 'string' },
+                                        example: ['Action', 'Sci-Fi']
+                                    }
+                                }
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Interests updated successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        con: { type: 'boolean', example: true },
+                                        msg: { type: 'string', example: 'Interests updated successfully' },
+                                        user: { $ref: '#/components/schemas/User' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    401: { description: 'Unauthorized' },
+                    404: { description: 'User not found' },
+                    500: { description: 'Server Error' },
+                },
+            },
+        },
+        '/api/v1/auth/update-profile': {
+            put: {
+                tags: ['Auth'],
+                summary: 'Update user profile',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string', example: 'John Doe' },
+                                    phone: { type: 'string', example: '0999999999' },
+                                    photo: { type: 'string', example: 'https://image.example.com/avatar.jpg' },
+                                    dateOfBirth: { type: 'string', format: 'date', example: '2000-01-01' }
+                                }
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Profile updated successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        con: { type: 'boolean', example: true },
+                                        msg: { type: 'string', example: 'Profile updated successfully' },
+                                        user: { $ref: '#/components/schemas/User' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    401: { description: 'Unauthorized' },
+                    404: { description: 'User not found' },
+                    500: { description: 'Server Error' },
+                },
+            },
+        },
     },
 };

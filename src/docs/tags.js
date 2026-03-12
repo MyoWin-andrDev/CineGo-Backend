@@ -1,4 +1,5 @@
 module.exports = [
+    { name: 'Health', description: 'Service health endpoint' },
     { name: 'Movies', description: 'Movie management' },
     { name: 'Cinemas', description: 'Cinema management' },
     { name: 'Halls', description: 'Hall management' },

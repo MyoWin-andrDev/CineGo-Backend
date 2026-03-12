@@ -27,6 +27,25 @@ module.exports = {
     ],
     tags,
     paths: {
+        '/health': {
+            get: {
+                tags: ['Health'],
+                summary: 'Health check endpoint',
+                responses: {
+                    200: {
+                        description: 'Server is healthy',
+                        content: {
+                            'text/plain': {
+                                schema: {
+                                    type: 'string',
+                                    example: 'OK'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         ...authPaths.paths,
         ...moviePaths.paths,
         ...cinemaPaths.paths,
