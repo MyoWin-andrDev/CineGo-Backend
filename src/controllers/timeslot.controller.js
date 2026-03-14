@@ -9,7 +9,8 @@ const getTimeSlotsByMovieAndCinema = asyncHandler(async (req, res) => {
     const slots = await TimeSlot.find({ movie: movieId })
         .populate({
             path: 'hall',
-            match: { cinema: cinemaId }
+            match: { cinema: cinemaId },
+            populate: { path: 'cinema' }
         })
         .sort({ show_date: 1, start_time: 1 });
 
