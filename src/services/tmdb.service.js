@@ -16,10 +16,20 @@ let getNowPlaying = async () => {
     return response.data.results;
 }
 
+let getUpcoming = async () => {
+    const response = await tmdbClient.get(process.env.TMDB_UP_COMING_ENDPOINT);
+    return response.data.results;
+}
+
 let getTeaser = async (movieId) => {
     const response = await tmdbClient.get(`/movie/${movieId}/videos`);
     return response.data.results;
 }
+let getTrailer= async (movieId) => {
+    const response = await tmdbClient.get(`/movie/${movieId}/videos`);
+    return response.data.results;
+}
+
 
 let getImages = async(movieId) => {
     const response = await tmdbClient.get(`/movie/${movieId}/images`);
@@ -39,8 +49,10 @@ let getCasters = async(movieId) => {
 
 module.exports = {
     getNowPlaying,
+    getUpcoming,
     getTeaser,
     getImages,
     getGenres,
-    getCasters
+    getCasters,
+    getTrailer
 }

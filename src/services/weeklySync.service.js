@@ -1,8 +1,9 @@
 const Movie = require('../models/movie.model');
+const UpcomingMovie = require('../models/upcomingMovie.model');
 const TimeSlot = require('../models/timeSlot.model');
 const Cinema = require('../models/cinema.model');
 const Hall = require('../models/hall.model');
-const { getNowPlaying } = require('./tmdb.service');
+const { getNowPlaying, getUpcoming } = require('./tmdb.service');
 const { saveMovies } = require('./movie.service');
 const { addDays, setTime } = require('../utils/time.utils');
 
@@ -14,8 +15,26 @@ const STANDARD_SLOTS = [
     { hour: 16, price: 7.5 }
 ];
 
+const syncUpcomingMovies = async () => {
+    const tmdbUpcoming = await getUpcoming();
+    const upcomingToSync = tmdbUpcoming.slice(0, REQUIRED_MOVIE_COUNT);
+
+    await UpcomingMovie.deleteMany({});
+
+    const savedUpcomingMovies = [];
+    for (const movie of upcomingToSync) {
+        const savedMovie = await saveMovies(movie, UpcomingMovie);
+        savedUpcomingMovies.push(savedMovie);
+    }
+
+    return savedUpcomingMovies;
+};
+
 const syncWeeklyNowPlaying = async () => {
-    const tmdbNowPlaying = await getNowPlaying();
+    const [tmdbNowPlaying, upcomingMovies] = await Promise.all([
+        getNowPlaying(),
+        syncUpcomingMovies()
+    ]);
     const firstFiveMovies = tmdbNowPlaying.slice(0, REQUIRED_MOVIE_COUNT);
 
     if (firstFiveMovies.length < REQUIRED_MOVIE_COUNT) {
@@ -92,6 +111,7 @@ const syncWeeklyNowPlaying = async () => {
 
     return {
         movies: savedMovies,
+        upcomingMovies,
         assignment: assignment.map(({ cinema, movie }) => ({
             cinemaId: cinema._id,
             cinemaName: cinema.name,
