@@ -108,7 +108,7 @@ module.exports = {
             get: {
                 tags: ['Movies'],
                 summary: 'Sync Now Playing and Upcoming movies + weekly timeslots',
-                description: 'Sync persists both `teaser` (array) and `trailer` (single key string). Trailer rule: first TMDB YouTube Trailer key, else empty string.',
+                description: 'Manual sync endpoint. Uses the same flow as weekly cron sync (`0 0 * * 0`). On each successful run, existing Now Playing movies, Upcoming movies, and generated timeslots are replaced with the latest TMDB data. Sync also persists both `teaser` (array) and `trailer` (single key string). Trailer rule: first TMDB YouTube Trailer key, else empty string.',
                 responses: {
                     200: {
                         description: 'Sync result for both movie collections',
