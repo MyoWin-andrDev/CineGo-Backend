@@ -17,7 +17,9 @@ let getNowPlaying = async () => {
 }
 
 let getUpcoming = async () => {
-    const response = await tmdbClient.get(process.env.TMDB_UP_COMING_ENDPOINT);
+    const configuredEndpoint = process.env.TMDB_UP_COMING_ENDPOINT || '/movie/upcoming';
+    const normalizedEndpoint = configuredEndpoint.replace('/up_coming', '/upcoming');
+    const response = await tmdbClient.get(normalizedEndpoint);
     return response.data.results;
 }
 

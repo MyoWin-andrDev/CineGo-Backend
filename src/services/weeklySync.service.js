@@ -15,35 +15,25 @@ const STANDARD_SLOTS = [
     { hour: 16, price: 7.5 }
 ];
 
-const syncUpcomingMovies = async () => {
-    const tmdbUpcoming = await getUpcoming();
+const syncWeeklyNowPlaying = async () => {
+    const [tmdbNowPlaying, tmdbUpcoming] = await Promise.all([
+        getNowPlaying(),
+        getUpcoming()
+    ]);
+    const nowPlayingToSync = tmdbNowPlaying.slice(0, REQUIRED_MOVIE_COUNT);
     const upcomingToSync = tmdbUpcoming.slice(0, REQUIRED_MOVIE_COUNT);
 
-    await UpcomingMovie.deleteMany({});
-
-    const savedUpcomingMovies = [];
-    for (const movie of upcomingToSync) {
-        const savedMovie = await saveMovies(movie, UpcomingMovie);
-        savedUpcomingMovies.push(savedMovie);
+    if (nowPlayingToSync.length < REQUIRED_MOVIE_COUNT) {
+        throw new Error(`TMDB returned only ${nowPlayingToSync.length} now playing movies. Need ${REQUIRED_MOVIE_COUNT} movies to build weekly schedule.`);
     }
 
-    return savedUpcomingMovies;
-};
-
-const syncWeeklyNowPlaying = async () => {
-    const [tmdbNowPlaying, upcomingMovies] = await Promise.all([
-        getNowPlaying(),
-        syncUpcomingMovies()
-    ]);
-    const firstFiveMovies = tmdbNowPlaying.slice(0, REQUIRED_MOVIE_COUNT);
-
-    if (firstFiveMovies.length < REQUIRED_MOVIE_COUNT) {
-        throw new Error(`TMDB returned only ${firstFiveMovies.length} movies. Need 5 movies to build weekly schedule.`);
+    if (upcomingToSync.length < REQUIRED_MOVIE_COUNT) {
+        throw new Error(`TMDB returned only ${upcomingToSync.length} upcoming movies. Need ${REQUIRED_MOVIE_COUNT} movies to sync coming soon list.`);
     }
 
     const cinemas = await Cinema.find().sort({ name: 1 }).limit(REQUIRED_CINEMA_COUNT);
     if (cinemas.length < REQUIRED_CINEMA_COUNT) {
-        throw new Error(`Found only ${cinemas.length} cinemas. Need 5 cinemas to assign 5 movies.`);
+        throw new Error(`Found only ${cinemas.length} cinemas. Need ${REQUIRED_CINEMA_COUNT} cinemas to assign movies.`);
     }
 
     const cinemaIds = cinemas.map((cinema) => cinema._id);
@@ -68,11 +58,18 @@ const syncWeeklyNowPlaying = async () => {
 
     await TimeSlot.deleteMany({});
     await Movie.deleteMany({});
+    await UpcomingMovie.deleteMany({});
 
     const savedMovies = [];
-    for (const movie of firstFiveMovies) {
+    for (const movie of nowPlayingToSync) {
         const savedMovie = await saveMovies(movie);
         savedMovies.push(savedMovie);
+    }
+
+    const upcomingMovies = [];
+    for (const movie of upcomingToSync) {
+        const savedMovie = await saveMovies(movie, UpcomingMovie);
+        upcomingMovies.push(savedMovie);
     }
 
     const assignment = cinemas.map((cinema, index) => ({
