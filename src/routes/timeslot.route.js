@@ -5,6 +5,6 @@ router.get(
     '/:movieId/cinema/:cinemaId',
     timeslotController.getTimeSlotsByMovieAndCinema
 );
-router.get('/:showtimeId/seats', timeslotController.getSeatAvailability);
+router.get('/:timeslotId/seats', timeslotController.getSeatAvailability);
 
 module.exports = router;

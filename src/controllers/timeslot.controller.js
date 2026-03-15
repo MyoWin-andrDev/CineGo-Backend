@@ -1,7 +1,7 @@
 const TimeSlot = require('../models/timeSlot.model');
 const { formatMessage } = require('../utils/utils');
 const asyncHandler = require('../utils/asyncHandler');
-const { getShowtimeSeatAvailability } = require('../services/booking.service');
+const { getTimeSlotSeatAvailability } = require('../services/booking.service');
 
 const getTimeSlotsByMovieAndCinema = asyncHandler(async (req, res) => {
     const { movieId, cinemaId } = req.params;
@@ -21,8 +21,8 @@ const getTimeSlotsByMovieAndCinema = asyncHandler(async (req, res) => {
 });
 
 const getSeatAvailability = asyncHandler(async (req, res) => {
-    const { showtimeId } = req.params;
-    const result = await getShowtimeSeatAvailability(showtimeId);
+    const { timeslotId } = req.params;
+    const result = await getTimeSlotSeatAvailability(timeslotId);
     formatMessage(res, 'Seat availability', result);
 });
 

@@ -45,20 +45,20 @@ module.exports = {
                 },
             },
         },
-        '/api/v1/timeslot/{showtimeId}/seats': {
+        '/api/v1/timeslot/{timeslotId}/seats': {
             get: {
                 tags: ['TimeSlots'],
-                summary: 'Get seat availability by showtime',
+                summary: 'Get seat availability by timeslot',
                 description: 'Returns reserved seats from seat_reservation and a computed seat map for the hall layout.',
                 parameters: [
                     {
-                        name: 'showtimeId',
+                        name: 'timeslotId',
                         in: 'path',
                         required: true,
                         schema: {
                             type: 'string',
                         },
-                        description: 'MongoDB Showtime ID',
+                        description: 'MongoDB TimeSlot ID',
                     },
                 ],
                 responses: {
@@ -80,7 +80,7 @@ module.exports = {
                         },
                     },
                     404: {
-                        description: 'Showtime not found',
+                        description: 'TimeSlot not found',
                     },
                 },
             },

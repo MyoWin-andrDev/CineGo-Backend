@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { normalizeSeat } = require('../middleware/seatReservation.middleware');
 
 const seatReservationSchema = new mongoose.Schema({
-    showtime: {
+    timeslot: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'timeslot',
         required: true
@@ -20,7 +20,7 @@ const seatReservationSchema = new mongoose.Schema({
 
 seatReservationSchema.pre('save', normalizeSeat);
 
-seatReservationSchema.index({ showtime: 1, seatId: 1 }, { unique: true });
+seatReservationSchema.index({ timeslot: 1, seatId: 1 }, { unique: true });
 seatReservationSchema.index({ booking: 1 });
 
 const seatReservationModel = mongoose.model('seat_reservation', seatReservationSchema);

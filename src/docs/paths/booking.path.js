@@ -3,7 +3,7 @@ module.exports = {
         '/api/v1/booking': {
             post: {
                 tags: ['Bookings'],
-                summary: 'Create booking and reserve seats for a showtime',
+                summary: 'Create booking and reserve seats for a time slot',
                 description: 'Creates a booking record and corresponding seat_reservation records atomically.',
                 requestBody: {
                     required: true,
@@ -11,9 +11,9 @@ module.exports = {
                         'application/json': {
                             schema: {
                                 type: 'object',
-                                required: ['showtimeId', 'seats'],
+                                required: ['timeslotId', 'seats'],
                                 properties: {
-                                    showtimeId: {
+                                    timeslotId: {
                                         type: 'string',
                                         example: '67d04e8458707f2a13f50d66'
                                     },
@@ -48,7 +48,7 @@ module.exports = {
                         description: 'Invalid request (e.g., empty seats, duplicate seats, invalid seat IDs)'
                     },
                     404: {
-                        description: 'Showtime or hall not found'
+                        description: 'Time slot or hall not found'
                     },
                     409: {
                         description: 'Seats already taken'

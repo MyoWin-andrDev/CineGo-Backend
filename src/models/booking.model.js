@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
-    showtime: {
+    timeslot: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'timeslot',
         required: true,

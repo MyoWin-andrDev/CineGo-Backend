@@ -60,7 +60,7 @@ erDiagram
 
     BOOKING {
         ObjectId _id PK
-        ObjectId showtime FK
+        ObjectId timeslot FK
         ObjectId hall FK
         ObjectId movie FK
         ObjectId cinema FK
@@ -74,7 +74,7 @@ erDiagram
 
     SEAT_RESERVATION {
         ObjectId _id PK
-        ObjectId showtime FK
+        ObjectId timeslot FK
         ObjectId booking FK
         string seatId
     }
@@ -105,7 +105,7 @@ erDiagram
 
 ## Notes
 
-- `seat_reservation` enforces unique seat booking per showtime via unique index on `(showtime, seatId)`.
+- `seat_reservation` enforces unique seat booking per timeslot via unique index on `(timeslot, seatId)`.
 - `timeslot` enforces uniqueness on `(movie, hall, show_date, start_time)`.
 - `booking.user` is optional (`null` allowed for guest booking).
 - `seat` model exists but is not currently used in booking flow (seat layout comes from `hall.seatLayout`).

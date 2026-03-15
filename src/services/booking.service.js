@@ -1,5 +1,4 @@
 const TimeSlot = require('../models/timeSlot.model');
-const Hall = require('../models/hall.model');
 const Booking = require('../models/booking.model');
 const SeatReservation = require('../models/seatReservation.model');
 const {
@@ -22,57 +21,63 @@ const toConflict = (message) => {
     return error;
 };
 
-const getShowtimeWithHall = async (showtimeId) => {
-    const showtime = await TimeSlot.findById(showtimeId).populate({
+const buildTimeSlotFilter = (timeslotId) => ({ timeslot: timeslotId });
+
+const getTimeSlotWithHall = async (timeslotId) => {
+    const timeSlot = await TimeSlot.findById(timeslotId).populate({
         path: 'hall',
         populate: { path: 'cinema' }
     });
 
-    if (!showtime) {
-        const error = new Error('Showtime not found');
+    if (!timeSlot) {
+        const error = new Error('Time slot not found');
         error.statusCode = 404;
         throw error;
     }
 
-    if (!showtime.hall) {
-        const error = new Error('Hall not found for showtime');
+    if (!timeSlot.hall) {
+        const error = new Error('Hall not found for time slot');
         error.statusCode = 404;
         throw error;
     }
 
-    return showtime;
+    return timeSlot;
 };
 
-const getShowtimeSeatAvailability = async (showtimeId) => {
-    const showtime = await getShowtimeWithHall(showtimeId);
-    const hall = showtime.hall;
+const getTimeSlotSeatAvailability = async (timeslotId) => {
+    const timeSlot = await getTimeSlotWithHall(timeslotId);
+    const hall = timeSlot.hall;
     const rowLabels = hall.seatLayout?.rowLabels?.length
         ? hall.seatLayout.rowLabels
         : DEFAULT_ROW_LABELS;
     const seatsPerRow = hall.seatLayout?.seatsPerRow || DEFAULT_SEATS_PER_ROW;
 
-    const takenSeatDocs = await SeatReservation.find({ showtime: showtime._id }).select('seatId -_id');
+    const takenSeatDocs = await SeatReservation.find(buildTimeSlotFilter(timeSlot._id)).select('seatId -_id');
     const takenSeats = takenSeatDocs.map((doc) => doc.seatId).sort();
 
     return {
-        showtimeId: showtime._id,
+        timeslotId: timeSlot._id,
         hallId: hall._id,
         cinemaId: hall.cinema?._id || null,
         rows: rowLabels,
         seatsPerRow,
-        ticketPrice: showtime.base_price,
+        ticketPrice: timeSlot.base_price,
         takenSeats,
         seatMap: buildSeatMap(takenSeats, rowLabels, seatsPerRow)
     };
 };
 
-const createBooking = async ({ showtimeId, seats, userId = null }) => {
+const createBooking = async ({ timeslotId, seats, userId = null }) => {
     if (!Array.isArray(seats) || seats.length === 0) {
         throw toBadRequest('Please provide at least one seat.');
     }
 
-    const showtime = await getShowtimeWithHall(showtimeId);
-    const hall = showtime.hall;
+    if (!timeslotId) {
+        throw toBadRequest('Please provide timeslotId.');
+    }
+
+    const timeSlot = await getTimeSlotWithHall(timeslotId);
+    const hall = timeSlot.hall;
     const rowLabels = hall.seatLayout?.rowLabels?.length
         ? hall.seatLayout.rowLabels
         : DEFAULT_ROW_LABELS;
@@ -92,13 +97,13 @@ const createBooking = async ({ showtimeId, seats, userId = null }) => {
     }
 
     const seatCount = uniqueSeats.length;
-    const ticketPrice = showtime.base_price;
+    const ticketPrice = timeSlot.base_price;
     const totalPrice = Number((seatCount * ticketPrice).toFixed(2));
 
     const booking = await Booking.create({
-        showtime: showtime._id,
+        timeslot: timeSlot._id,
         hall: hall._id,
-        movie: showtime.movie,
+        movie: timeSlot.movie,
         cinema: hall.cinema?._id || hall.cinema,
         seats: uniqueSeats,
         seatCount,
@@ -110,7 +115,7 @@ const createBooking = async ({ showtimeId, seats, userId = null }) => {
     try {
         await SeatReservation.insertMany(
             uniqueSeats.map((seatId) => ({
-                showtime: showtime._id,
+                timeslot: timeSlot._id,
                 booking: booking._id,
                 seatId
             })),
@@ -121,7 +126,7 @@ const createBooking = async ({ showtimeId, seats, userId = null }) => {
 
         if (error?.code === 11000) {
             const takenDocs = await SeatReservation.find({
-                showtime: showtime._id,
+                ...buildTimeSlotFilter(timeSlot._id),
                 seatId: { $in: uniqueSeats }
             }).select('seatId -_id');
 
@@ -136,6 +141,6 @@ const createBooking = async ({ showtimeId, seats, userId = null }) => {
 };
 
 module.exports = {
-    getShowtimeSeatAvailability,
+    getTimeSlotSeatAvailability,
     createBooking
 };

@@ -2,12 +2,12 @@ const asyncHandler = require('../utils/asyncHandler');
 const { formatMessage } = require('../utils/utils');
 const { createBooking } = require('../services/booking.service');
 
-const createShowtimeBooking = asyncHandler(async (req, res) => {
-    const { showtimeId, seats } = req.body;
+const createTimeslotBooking = asyncHandler(async (req, res) => {
+    const { timeslotId, seats } = req.body;
     const userId = req.user?.id || null;
 
     const booking = await createBooking({
-        showtimeId,
+        timeslotId,
         seats,
         userId
     });
@@ -16,5 +16,5 @@ const createShowtimeBooking = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    createShowtimeBooking
+    createTimeslotBooking
 };

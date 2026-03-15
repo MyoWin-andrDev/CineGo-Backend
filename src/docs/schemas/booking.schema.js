@@ -6,7 +6,7 @@ module.exports = {
                 type: 'string',
                 example: '67d0512c66b5c2f5606a5a20'
             },
-            showtime: {
+            timeslot: {
                 type: 'string',
                 example: '67d04e8458707f2a13f50d66'
             },
@@ -35,7 +35,7 @@ module.exports = {
                 type: 'string',
                 example: '67d0512c66b5c2f5606a5a1f'
             },
-            showtime: {
+            timeslot: {
                 type: 'string',
                 example: '67d04e8458707f2a13f50d66'
             },
@@ -85,7 +85,7 @@ module.exports = {
     SeatAvailabilityResponse: {
         type: 'object',
         properties: {
-            showtimeId: { type: 'string' },
+            timeslotId: { type: 'string' },
             hallId: { type: 'string' },
             cinemaId: { type: 'string' },
             rows: {
