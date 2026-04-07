@@ -1,9 +1,17 @@
 const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
+const { sendOtpEmail } = require('../services/email.service');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const OTP_TTL_MINUTES = 5;
+const OTP_TTL_MS = OTP_TTL_MINUTES * 60 * 1000;
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_MAX_RESEND_COUNT = 5;
 
 const generateToken = (user) => {
     return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
@@ -11,28 +19,260 @@ const generateToken = (user) => {
     });
 };
 
+const normalizeEmail = (email = '') => email.trim().toLowerCase();
+
+const generateOtp = () => {
+    return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+};
+
+const hashOtp = (otp) => {
+    return crypto.createHash('sha256').update(otp).digest('hex');
+};
+
+const getRetryAfterSec = (lastSentAt) => {
+    if (!lastSentAt) {
+        return 0;
+    }
+
+    const elapsed = Date.now() - new Date(lastSentAt).getTime();
+    const remaining = OTP_RESEND_COOLDOWN_MS - elapsed;
+    return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
+};
+
+const getPublicUser = (user) => {
+    const payload = user.toObject ? user.toObject() : user;
+    delete payload.password;
+    delete payload.emailOtpHash;
+    delete payload.emailOtpExpiresAt;
+    delete payload.emailOtpAttempts;
+    delete payload.emailOtpLastSentAt;
+    delete payload.emailOtpResendCount;
+    return payload;
+};
+
 exports.signup = async (req, res) => {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ con: false, msg: 'Email and password are required' });
+    }
+
+    if (password.length < 8) {
+        return res.status(400).json({ con: false, msg: 'Password must be at least 8 characters' });
+    }
 
     try {
         let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ con: false, msg: 'User already exists' });
+
+        if (user && user.isEmailVerified) {
+            return res.status(409).json({ con: false, msg: 'User already exists. Please login.' });
         }
 
-        user = new User({
-            email,
-            password
+        const retryAfterSec = user ? getRetryAfterSec(user.emailOtpLastSentAt) : 0;
+        if (retryAfterSec > 0) {
+            return res.status(429).json({
+                con: false,
+                msg: 'Please wait before requesting another OTP',
+                retryAfterSec
+            });
+        }
+
+        if (user && user.emailOtpResendCount >= OTP_MAX_RESEND_COUNT) {
+            return res.status(429).json({
+                con: false,
+                msg: 'Too many OTP requests. Please try again later.',
+                retryAfterSec: OTP_TTL_MINUTES * 60
+            });
+        }
+
+        if (!user) {
+            user = new User({
+                email,
+                password,
+                isEmailVerified: false
+            });
+        } else {
+            user.password = password;
+        }
+
+        const otp = generateOtp();
+        user.emailOtpHash = hashOtp(otp);
+        user.emailOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+        user.emailOtpAttempts = 0;
+        user.emailOtpLastSentAt = new Date();
+        user.emailOtpResendCount = (user.emailOtpResendCount || 0) + 1;
+
+        await user.save();
+
+        try {
+            await sendOtpEmail({
+                to: email,
+                otp,
+                expiresInMinutes: OTP_TTL_MINUTES
+            });
+        } catch (mailErr) {
+            console.error(mailErr);
+            return res.status(500).json({ con: false, msg: 'Failed to send OTP' });
+        }
+
+        res.status(201).json({
+            con: true,
+            msg: 'OTP sent to your email',
+            data: {
+                email,
+                expiresInSec: OTP_TTL_MINUTES * 60,
+                resendAfterSec: 60
+            }
         });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ con: false, msg: 'Server Error' });
+    }
+};
+
+exports.verifyEmailOtp = async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const otp = String(req.body.otp || '').trim();
+
+    if (!email || !otp) {
+        return res.status(400).json({ con: false, msg: 'Email and OTP are required' });
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ con: false, msg: 'Invalid or expired OTP' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ con: false, msg: 'User not found' });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(409).json({ con: false, msg: 'Email already verified. Please login.' });
+        }
+
+        const isExpired = !user.emailOtpExpiresAt || new Date(user.emailOtpExpiresAt).getTime() < Date.now();
+        if (!user.emailOtpHash || isExpired) {
+            return res.status(400).json({ con: false, msg: 'Invalid or expired OTP' });
+        }
+
+        if ((user.emailOtpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
+            return res.status(429).json({
+                con: false,
+                msg: 'Too many failed attempts. Request a new OTP.',
+                retryAfterSec: Math.ceil((new Date(user.emailOtpExpiresAt).getTime() - Date.now()) / 1000)
+            });
+        }
+
+        const isValid = hashOtp(otp) === user.emailOtpHash;
+        if (!isValid) {
+            user.emailOtpAttempts = (user.emailOtpAttempts || 0) + 1;
+            await user.save();
+
+            if (user.emailOtpAttempts >= OTP_MAX_ATTEMPTS) {
+                return res.status(429).json({
+                    con: false,
+                    msg: 'Too many failed attempts. Request a new OTP.',
+                    retryAfterSec: Math.ceil((new Date(user.emailOtpExpiresAt).getTime() - Date.now()) / 1000)
+                });
+            }
+
+            return res.status(400).json({ con: false, msg: 'Invalid or expired OTP' });
+        }
+
+        user.isEmailVerified = true;
+        user.emailOtpHash = null;
+        user.emailOtpExpiresAt = null;
+        user.emailOtpAttempts = 0;
+        user.emailOtpLastSentAt = null;
+        user.emailOtpResendCount = 0;
 
         await user.save();
 
         const token = generateToken(user);
 
-        res.status(201).json({ con: true, msg: 'User registered successfully', token, user });
+        res.json({
+            con: true,
+            msg: 'Email verified successfully',
+            token,
+            user: getPublicUser(user)
+        });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ con: false, msg: 'Server Error' });
+    }
+};
+
+exports.resendEmailOtp = async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+
+    if (!email) {
+        return res.status(400).json({ con: false, msg: 'Email is required' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ con: false, msg: 'User not found' });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(409).json({ con: false, msg: 'Email already verified. Please login.' });
+        }
+
+        const retryAfterSec = getRetryAfterSec(user.emailOtpLastSentAt);
+        if (retryAfterSec > 0) {
+            return res.status(429).json({
+                con: false,
+                msg: 'Please wait before requesting another OTP',
+                retryAfterSec
+            });
+        }
+
+        if ((user.emailOtpResendCount || 0) >= OTP_MAX_RESEND_COUNT) {
+            return res.status(429).json({
+                con: false,
+                msg: 'Too many OTP requests. Please try again later.',
+                retryAfterSec: OTP_TTL_MINUTES * 60
+            });
+        }
+
+        const otp = generateOtp();
+        user.emailOtpHash = hashOtp(otp);
+        user.emailOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+        user.emailOtpAttempts = 0;
+        user.emailOtpLastSentAt = new Date();
+        user.emailOtpResendCount = (user.emailOtpResendCount || 0) + 1;
+
+        await user.save();
+
+        try {
+            await sendOtpEmail({
+                to: email,
+                otp,
+                expiresInMinutes: OTP_TTL_MINUTES
+            });
+        } catch (mailErr) {
+            console.error(mailErr);
+            return res.status(500).json({ con: false, msg: 'Failed to send OTP' });
+        }
+
+        res.json({
+            con: true,
+            msg: 'OTP resent successfully',
+            data: {
+                email,
+                expiresInSec: OTP_TTL_MINUTES * 60,
+                resendAfterSec: 60
+            }
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ con: false, msg: 'Server Error' });
     }
 };
 
@@ -47,7 +287,7 @@ exports.updateInterests = async (req, res) => {
         user.prefer_genres = prefer_genres;
         await user.save();
 
-        res.json({ con: true, msg: 'Interests updated successfully', user });
+        res.json({ con: true, msg: 'Interests updated successfully', user: getPublicUser(user) });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -56,8 +296,6 @@ exports.updateInterests = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     const { name, phone, dateOfBirth } = req.body;
-    // Note: Photo handling might need multer or similar if it's a file upload, 
-    // but assuming it's a URL or string for now as per simple fix request.
     const photo = req.body.photo;
 
     try {
@@ -73,7 +311,7 @@ exports.updateProfile = async (req, res) => {
 
         await user.save();
 
-        res.json({ con: true, msg: 'Profile updated successfully', user });
+        res.json({ con: true, msg: 'Profile updated successfully', user: getPublicUser(user) });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -81,7 +319,8 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
     try {
         const user = await User.findOne({ email });
@@ -94,9 +333,13 @@ exports.login = async (req, res) => {
             return res.status(400).json({ con: false, msg: 'Invalid Credentials' });
         }
 
+        if (!user.isEmailVerified) {
+            return res.status(403).json({ con: false, msg: 'Email not verified. Please verify OTP first.' });
+        }
+
         const token = generateToken(user);
 
-        res.json({ con: true, msg: 'Login successful', token, user });
+        res.json({ con: true, msg: 'Login successful', token, user: getPublicUser(user) });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -116,25 +359,24 @@ exports.googleLogin = async (req, res) => {
         let user = await User.findOne({ email });
 
         if (user) {
-            // If user exists but doesn't have googleId (e.g. signed up with email/password), link it
             if (!user.googleId) {
                 user.googleId = googleId;
-                await user.save();
             }
+            user.isEmailVerified = true;
+            await user.save();
         } else {
-            // Create new user
             user = new User({
                 name,
                 email,
                 googleId,
-                password: '' // No password for OAuth users
+                password: '',
+                isEmailVerified: true
             });
             await user.save();
         }
 
         const jwtToken = generateToken(user);
-        res.json({ con: true, msg: 'Google login successful', token: jwtToken, user });
-
+        res.json({ con: true, msg: 'Google login successful', token: jwtToken, user: getPublicUser(user) });
     } catch (err) {
         console.error(err);
         res.status(400).json({ con: false, msg: 'Google login failed' });
@@ -155,27 +397,28 @@ exports.facebookLogin = async (req, res) => {
         }
 
         let user = await User.findOne({
-            $or: [{ facebookId: id }, { email: email }]
+            $or: [{ facebookId: id }, { email }]
         });
 
         if (user) {
             if (!user.facebookId) {
                 user.facebookId = id;
-                await user.save();
             }
+            user.isEmailVerified = true;
+            await user.save();
         } else {
             user = new User({
                 name,
                 email,
                 facebookId: id,
-                password: ''
+                password: '',
+                isEmailVerified: true
             });
             await user.save();
         }
 
         const token = generateToken(user);
-        res.json({ con: true, msg: 'Facebook login successful', token, user });
-
+        res.json({ con: true, msg: 'Facebook login successful', token, user: getPublicUser(user) });
     } catch (err) {
         console.error(err);
         res.status(400).json({ con: false, msg: 'Facebook login failed' });
@@ -210,14 +453,13 @@ exports.githubLogin = async (req, res) => {
             const emailResponse = await axios.get('https://api.github.com/user/emails', {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            const primaryEmail = emailResponse.data.find(e => e.primary && e.verified);
+            const primaryEmail = emailResponse.data.find((e) => e.primary && e.verified);
             userEmail = primaryEmail ? primaryEmail.email : null;
         }
 
         if (!userEmail) {
             return res.status(400).json({ con: false, msg: 'GitHub email not found or private' });
         }
-
 
         let user = await User.findOne({
             $or: [{ githubId: id.toString() }, { email: userEmail }]
@@ -226,21 +468,22 @@ exports.githubLogin = async (req, res) => {
         if (user) {
             if (!user.githubId) {
                 user.githubId = id.toString();
-                await user.save();
             }
+            user.isEmailVerified = true;
+            await user.save();
         } else {
             user = new User({
                 name: name || login,
                 email: userEmail,
                 githubId: id.toString(),
-                password: ''
+                password: '',
+                isEmailVerified: true
             });
             await user.save();
         }
 
         const token = generateToken(user);
-        res.json({ con: true, msg: 'GitHub login successful', token, user });
-
+        res.json({ con: true, msg: 'GitHub login successful', token, user: getPublicUser(user) });
     } catch (err) {
         console.error(err);
         res.status(400).json({ con: false, msg: 'GitHub login failed' });

@@ -29,6 +29,8 @@ const ratingAuthMiddleware = (req, res, next) => {
 router.get('/sync', movieController.syncNowPlaying)
 router.get('/', movieController.getNowPlayingMovie)
 router.get('/upcoming', movieController.getUpcomingMovie)
+router.get('/upcoming/:movieId', movieController.getUpcomingMovieDetailById)
+router.get('/:movieId', movieController.getNowPlayingMovieDetailById)
 router.post('/:movieId/rating', ratingAuthMiddleware, movieController.rateMovie)
 router.get('/:movieId/rating', movieController.getMovieRating)
 router.get('/:movieId/rating/me', ratingAuthMiddleware, movieController.getMyRating)

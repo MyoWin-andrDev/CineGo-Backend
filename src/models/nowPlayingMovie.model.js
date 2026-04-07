@@ -8,6 +8,6 @@ nowPlayingMovieSchema.add({
     userRatingCount: { type: Number, default: 0 }
 });
 
-const movieModel = mongoose.model('movie', nowPlayingMovieSchema);
+const nowPlayingMovieModel = mongoose.model('now_playing_movie', nowPlayingMovieSchema);
 
-module.exports = movieModel
+module.exports = nowPlayingMovieModel

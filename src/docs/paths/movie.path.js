@@ -52,6 +52,66 @@ module.exports = {
                 },
             },
         },
+        '/api/v1/movie/{movieId}': {
+            get: {
+                tags: ['Movies'],
+                summary: 'Get Now Playing movie detail by MongoDB _id',
+                parameters: [
+                    {
+                        name: 'movieId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    200: {
+                        description: 'Now Playing movie detail',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/NowPlayingMovieDetailResponse' },
+                            },
+                        },
+                    },
+                    400: {
+                        description: 'Invalid movieId',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/MovieRatingErrorResponse' },
+                                examples: {
+                                    invalidMovieId: {
+                                        value: {
+                                            con: false,
+                                            conn: false,
+                                            msg: 'Invalid movieId',
+                                            result: null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    404: {
+                        description: 'Now Playing movie not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/MovieRatingErrorResponse' },
+                                examples: {
+                                    movieNotFound: {
+                                        value: {
+                                            con: false,
+                                            conn: false,
+                                            msg: 'Now Playing movie not found',
+                                            result: null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+            },
+        },
         '/api/v1/movie/upcoming': {
             get: {
                 tags: ['Movies'],
@@ -100,6 +160,66 @@ module.exports = {
                                 },
                             },
                         },
+                    },
+                },
+            },
+        },
+        '/api/v1/movie/upcoming/{movieId}': {
+            get: {
+                tags: ['Movies'],
+                summary: 'Get Upcoming movie detail by MongoDB _id',
+                parameters: [
+                    {
+                        name: 'movieId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    200: {
+                        description: 'Upcoming movie detail',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/UpcomingMovieDetailResponse' },
+                            },
+                        },
+                    },
+                    400: {
+                        description: 'Invalid movieId',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/MovieRatingErrorResponse' },
+                                examples: {
+                                    invalidMovieId: {
+                                        value: {
+                                            con: false,
+                                            conn: false,
+                                            msg: 'Invalid movieId',
+                                            result: null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    404: {
+                        description: 'Upcoming movie not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/MovieRatingErrorResponse' },
+                                examples: {
+                                    movieNotFound: {
+                                        value: {
+                                            con: false,
+                                            conn: false,
+                                            msg: 'Upcoming movie not found',
+                                            result: null
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                 },
             },

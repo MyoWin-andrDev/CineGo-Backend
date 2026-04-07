@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
     name: { type: String },
     email: { type: String, unique: true },
     password: { type: String }, // Required for non-OAuth users
+    isEmailVerified: { type: Boolean, default: true },
+    emailOtpHash: { type: String, default: null },
+    emailOtpExpiresAt: { type: Date, default: null },
+    emailOtpAttempts: { type: Number, default: 0 },
+    emailOtpLastSentAt: { type: Date, default: null },
+    emailOtpResendCount: { type: Number, default: 0 },
     googleId: { type: String, unique: true, sparse: true }, // For Google OAuth
     facebookId: { type: String, unique: true, sparse: true }, // For Facebook OAuth
     githubId: { type: String, unique: true, sparse: true }, // For GitHub OAuth

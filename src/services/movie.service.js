@@ -1,4 +1,4 @@
-const Movie = require('../models/movie.model');
+const Movie = require('../models/nowPlayingMovie.model');
 const {getTeaser, getImages, getGenres, getCasters, getTrailer} = require('../services/tmdb.service');
 const { extractTeasers } = require('../mappers/teaser.mapper');
 const { extractImages} = require('../mappers/image.mapper');

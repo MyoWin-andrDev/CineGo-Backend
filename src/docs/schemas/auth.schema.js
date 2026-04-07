@@ -6,6 +6,7 @@ module.exports = {
             name: { type: 'string', example: 'John Doe' },
             email: { type: 'string', example: 'john@example.com' },
             phone: { type: 'string', example: '1234567890' },
+            isEmailVerified: { type: 'boolean', example: true },
             googleId: { type: 'string', example: '112233445566778899' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
@@ -22,12 +23,42 @@ module.exports = {
     },
     SignupRequest: {
         type: 'object',
-        required: ['name', 'email', 'password'],
+        required: ['email', 'password'],
         properties: {
             name: { type: 'string', example: 'John Doe' },
             email: { type: 'string', example: 'john@example.com' },
             password: { type: 'string', example: 'password123' },
             phone: { type: 'string', example: '1234567890' },
+        },
+    },
+    SignupOtpSentResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'OTP sent to your email' },
+            data: {
+                type: 'object',
+                properties: {
+                    email: { type: 'string', example: 'john@example.com' },
+                    expiresInSec: { type: 'number', example: 300 },
+                    resendAfterSec: { type: 'number', example: 60 },
+                }
+            }
+        }
+    },
+    VerifyEmailOtpRequest: {
+        type: 'object',
+        required: ['email', 'otp'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
+            otp: { type: 'string', example: '123456' },
+        },
+    },
+    ResendEmailOtpRequest: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
         },
     },
     LoginRequest: {

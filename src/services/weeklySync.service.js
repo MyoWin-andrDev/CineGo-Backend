@@ -1,4 +1,4 @@
-const Movie = require('../models/movie.model');
+const Movie = require('../models/nowPlayingMovie.model');
 const UpcomingMovie = require('../models/upcomingMovie.model');
 const TimeSlot = require('../models/timeSlot.model');
 const Cinema = require('../models/cinema.model');

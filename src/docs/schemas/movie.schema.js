@@ -1,5 +1,5 @@
 module.exports = {
-    Movie: {
+    NowPlayingMovie: {
         type: 'object',
         properties: {
             _id: {
@@ -100,6 +100,97 @@ module.exports = {
             },
         },
     },
+    UpcomingMovie: {
+        type: 'object',
+        properties: {
+            _id: {
+                type: 'string',
+                example: '697b32a47cbd63295511ec02',
+            },
+            tmdbId: {
+                type: 'number',
+                example: 1512345,
+            },
+            title: {
+                type: 'string',
+                example: 'Galaxy Run',
+            },
+            overview: {
+                type: 'string',
+            },
+            posterPath: {
+                type: 'string',
+            },
+            backdropPath: {
+                type: 'string',
+            },
+            trailer: {
+                type: 'string',
+                example: '',
+                description: 'App trailer key: first TMDB video with site=YouTube and type=Trailer. Stores key only; falls back to empty string.',
+            },
+            rating: {
+                type: 'number',
+                example: 0,
+            },
+            voteAverage: {
+                type: 'number',
+                example: 0,
+                description: 'TMDB vote average (external data, not app-user rating).',
+            },
+            voteCount: {
+                type: 'number',
+                example: 0,
+                description: 'TMDB vote count (external data, not app-user rating).',
+            },
+            releaseDate: {
+                type: 'string',
+                format: 'date-time',
+            },
+            teaser: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        key: { type: 'string' },
+                        type: { type: 'string' },
+                    },
+                },
+            },
+            images: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        filePath: { type: 'string' },
+                    },
+                },
+            },
+            genres: {
+                type: 'array',
+                items: { type: 'string' },
+            },
+            casters: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        profilePath: { type: 'string' },
+                    },
+                },
+            },
+            createdAt: {
+                type: 'string',
+                format: 'date-time',
+            },
+            updatedAt: {
+                type: 'string',
+                format: 'date-time',
+            },
+        },
+    },
     NowPlayingMoviesResponse: {
         type: 'object',
         properties: {
@@ -108,8 +199,17 @@ module.exports = {
             msg: { type: 'string', example: 'Now Playing Movie' },
             result: {
                 type: 'array',
-                items: { $ref: '#/components/schemas/Movie' },
+                items: { $ref: '#/components/schemas/NowPlayingMovie' },
             },
+        },
+    },
+    NowPlayingMovieDetailResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            conn: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'Now Playing Movie Detail' },
+            result: { $ref: '#/components/schemas/NowPlayingMovie' },
         },
     },
     UpcomingMoviesResponse: {
@@ -120,8 +220,17 @@ module.exports = {
             msg: { type: 'string', example: 'Coming Soon Movie' },
             result: {
                 type: 'array',
-                items: { $ref: '#/components/schemas/Movie' },
+                items: { $ref: '#/components/schemas/UpcomingMovie' },
             },
+        },
+    },
+    UpcomingMovieDetailResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            conn: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'Upcoming Movie Detail' },
+            result: { $ref: '#/components/schemas/UpcomingMovie' },
         },
     },
     WeeklyMovieSyncResponse: {
@@ -135,11 +244,11 @@ module.exports = {
                 properties: {
                     movies: {
                         type: 'array',
-                        items: { $ref: '#/components/schemas/Movie' },
+                        items: { $ref: '#/components/schemas/NowPlayingMovie' },
                     },
                     upcomingMovies: {
                         type: 'array',
-                        items: { $ref: '#/components/schemas/Movie' },
+                        items: { $ref: '#/components/schemas/UpcomingMovie' },
                     },
                     assignment: {
                         type: 'array',

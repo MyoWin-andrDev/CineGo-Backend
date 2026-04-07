@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Movie = require('../models/movie.model');
+const Movie = require('../models/nowPlayingMovie.model');
 const Cinema = require('../models/cinema.model');
 
 // Initialize Gemini

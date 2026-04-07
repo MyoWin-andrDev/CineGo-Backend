@@ -3,7 +3,7 @@ module.exports = {
         '/api/v1/auth/signup': {
             post: {
                 tags: ['Auth'],
-                summary: 'Register a new user',
+                summary: 'Register user and send OTP email',
                 requestBody: {
                     required: true,
                     content: {
@@ -14,14 +14,74 @@ module.exports = {
                 },
                 responses: {
                     201: {
-                        description: 'User registered successfully',
+                        description: 'OTP sent successfully',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/SignupOtpSentResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'Invalid request' },
+                    409: { description: 'User already exists and is verified' },
+                    429: { description: 'Too many OTP requests' },
+                    500: { description: 'Failed to send OTP' },
+                },
+            },
+        },
+        '/api/v1/auth/verify-email-otp': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Verify email OTP and activate account',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/VerifyEmailOtpRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Email verified successfully',
                         content: {
                             'application/json': {
                                 schema: { $ref: '#/components/schemas/AuthSuccess' },
                             },
                         },
                     },
-                    400: { description: 'User already exists' },
+                    400: { description: 'Invalid or expired OTP' },
+                    404: { description: 'User not found' },
+                    409: { description: 'Email already verified' },
+                    429: { description: 'Too many failed attempts' },
+                    500: { description: 'Server Error' },
+                },
+            },
+        },
+        '/api/v1/auth/resend-email-otp': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Resend OTP to unverified email',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/ResendEmailOtpRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'OTP resent successfully',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/SignupOtpSentResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'Invalid request' },
+                    404: { description: 'User not found' },
+                    409: { description: 'Email already verified' },
+                    429: { description: 'Too many OTP requests' },
                     500: { description: 'Server Error' },
                 },
             },
@@ -48,6 +108,7 @@ module.exports = {
                         },
                     },
                     400: { description: 'Invalid Credentials' },
+                    403: { description: 'Email not verified' },
                     500: { description: 'Server Error' },
                 },
             },

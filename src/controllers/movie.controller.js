@@ -2,7 +2,8 @@ const { syncWeeklyNowPlaying } = require('../services/weeklySync.service');
 const { upsertMovieRating, getMovieRatingSummary, getMyMovieRating } = require('../services/review.service');
 const { formatMessage } = require("../utils/utils");
 const TimeSlot = require("../models/timeSlot.model");
-const Movie = require("../models/movie.model");
+const mongoose = require('mongoose');
+const NowPlayingMovie = require("../models/nowPlayingMovie.model");
 const UpcomingMovie = require("../models/upcomingMovie.model");
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -35,13 +36,63 @@ const getCinemasByMovie = asyncHandler(async (req, res) => {
 
 
 const getNowPlayingMovie = asyncHandler(async (req, res) => {
-    const result = await Movie.find().sort({ createdAt: -1 });
+    const result = await NowPlayingMovie.find().sort({ createdAt: -1 });
     formatMessage(res, "Now Playing Movie", result);
 });
 
 const getUpcomingMovie = asyncHandler(async (req, res) => {
     const result = await UpcomingMovie.find().sort({ createdAt: -1 });
     formatMessage(res, "Coming Soon Movie", result);
+});
+
+const getNowPlayingMovieDetailById = asyncHandler(async (req, res) => {
+    const { movieId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(movieId)) {
+        return res.status(400).json({
+            con: false,
+            conn: false,
+            msg: 'Invalid movieId',
+            result: null
+        });
+    }
+
+    const result = await NowPlayingMovie.findById(movieId);
+    if (!result) {
+        return res.status(404).json({
+            con: false,
+            conn: false,
+            msg: 'Now Playing movie not found',
+            result: null
+        });
+    }
+
+    formatMessage(res, "Now Playing Movie Detail", result);
+});
+
+const getUpcomingMovieDetailById = asyncHandler(async (req, res) => {
+    const { movieId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(movieId)) {
+        return res.status(400).json({
+            con: false,
+            conn: false,
+            msg: 'Invalid movieId',
+            result: null
+        });
+    }
+
+    const result = await UpcomingMovie.findById(movieId);
+    if (!result) {
+        return res.status(404).json({
+            con: false,
+            conn: false,
+            msg: 'Upcoming movie not found',
+            result: null
+        });
+    }
+
+    formatMessage(res, "Upcoming Movie Detail", result);
 });
 
 const rateMovie = asyncHandler(async (req, res) => {
@@ -115,6 +166,8 @@ module.exports = {
     getCinemasByMovie,
     getNowPlayingMovie,
     getUpcomingMovie,
+    getNowPlayingMovieDetailById,
+    getUpcomingMovieDetailById,
     rateMovie,
     getMovieRating,
     getMyRating

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Movie = require('../models/movie.model');
+const Movie = require('../models/nowPlayingMovie.model');
 const Review = require('../models/review.model');
 
 const validateMovieId = (movieId) => {

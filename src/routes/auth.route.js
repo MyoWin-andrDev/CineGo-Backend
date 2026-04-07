@@ -5,6 +5,8 @@ const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
 router.post('/signup', authController.signup);
+router.post('/verify-email-otp', authController.verifyEmailOtp);
+router.post('/resend-email-otp', authController.resendEmailOtp);
 router.post('/login', authController.login);
 router.post('/google', authController.googleLogin);
 router.post('/facebook', authController.facebookLogin);
