@@ -6,7 +6,6 @@ const asyncHandler = require('../utils/asyncHandler');
 
 const createCinema = asyncHandler(async (req, res) => {
     const cinema = await Cinema.create(req.body);
-
     // auto-create IMAX hall
     await Hall.create({
         cinema: cinema._id,

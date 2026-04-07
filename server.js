@@ -17,11 +17,11 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 process.on('unhandledRejection', (error) => {
-    console.error('Unhandled Promise Rejection:', error);
+    
 });
 
 process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
+    
     process.exit(1);
 });
 

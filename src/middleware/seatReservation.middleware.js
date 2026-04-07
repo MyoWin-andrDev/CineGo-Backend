@@ -1,6 +1,5 @@
-const normalizeSeat = function normalizeSeat(next) {
+const normalizeSeat = function normalizeSeat() {
     this.seatId = String(this.seatId || '').trim().toUpperCase();
-    next();
 };
 
 module.exports = {

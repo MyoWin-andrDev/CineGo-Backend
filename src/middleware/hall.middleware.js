@@ -1,6 +1,6 @@
 const { DEFAULT_ROW_LABELS, DEFAULT_SEATS_PER_ROW } = require('../utils/seat.utils');
 
-const updateTotalSeats = function updateTotalSeats(next) {
+const updateTotalSeats = function updateTotalSeats() {
     const normalizedRows = (this.seatLayout?.rowLabels || DEFAULT_ROW_LABELS)
         .map((row) => String(row).trim().toUpperCase())
         .filter(Boolean);
@@ -13,7 +13,6 @@ const updateTotalSeats = function updateTotalSeats(next) {
     const rowCount = this.seatLayout.rowLabels.length;
     const seatsPerRow = this.seatLayout?.seatsPerRow || DEFAULT_SEATS_PER_ROW;
     this.totalSeats = rowCount * seatsPerRow;
-    next();
 };
 
 module.exports = {
