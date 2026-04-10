@@ -28,9 +28,7 @@ module.exports = {
                     required: true,
                     content: {
                         'application/json': {
-                            schema: {
-                                $ref: '#/components/schemas/Cinema',
-                            },
+                            schema: { $ref: '#/components/schemas/CinemaCreateRequest' },
                         },
                     },
                 },

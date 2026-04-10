@@ -1,4 +1,41 @@
 module.exports = {
+    CinemaCreateRequest: {
+        type: 'object',
+        required: ['name', 'location'],
+        properties: {
+            name: {
+                type: 'string',
+                example: 'Junction City Cinema',
+            },
+            address: {
+                type: 'string',
+                example: 'Bogyoke Aung San Rd, Yangon',
+            },
+            city: {
+                type: 'string',
+                example: 'Yangon',
+            },
+            location: {
+                type: 'object',
+                required: ['coordinates'],
+                properties: {
+                    type: {
+                        type: 'string',
+                        example: 'Point',
+                        default: 'Point',
+                    },
+                    coordinates: {
+                        type: 'array',
+                        items: { type: 'number' },
+                        minItems: 2,
+                        maxItems: 2,
+                        example: [96.1951, 16.8661],
+                        description: '[longitude, latitude]',
+                    },
+                },
+            },
+        },
+    },
     Cinema: {
         type: 'object',
         properties: {

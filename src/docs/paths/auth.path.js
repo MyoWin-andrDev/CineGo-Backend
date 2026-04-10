@@ -197,17 +197,7 @@ module.exports = {
                     required: true,
                     content: {
                         'application/json': {
-                            schema: {
-                                type: 'object',
-                                required: ['prefer_genres'],
-                                properties: {
-                                    prefer_genres: {
-                                        type: 'array',
-                                        items: { type: 'string' },
-                                        example: ['Action', 'Sci-Fi']
-                                    }
-                                }
-                            },
+                            schema: { $ref: '#/components/schemas/UpdateInterestsRequest' },
                         },
                     },
                 },
@@ -242,15 +232,7 @@ module.exports = {
                     required: true,
                     content: {
                         'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    name: { type: 'string', example: 'John Doe' },
-                                    phone: { type: 'string', example: '0999999999' },
-                                    photo: { type: 'string', example: 'https://image.example.com/avatar.jpg' },
-                                    dateOfBirth: { type: 'string', format: 'date', example: '2000-01-01' }
-                                }
-                            },
+                            schema: { $ref: '#/components/schemas/UpdateProfileRequest' },
                         },
                     },
                 },

@@ -1,4 +1,33 @@
 module.exports = {
+    HallCreateRequest: {
+        type: 'object',
+        required: ['cinema'],
+        properties: {
+            cinema: {
+                type: 'string',
+                example: '697c03e8d6258fb85799041a',
+                description: 'Cinema ID this hall belongs to',
+            },
+            hallName: {
+                type: 'string',
+                example: 'IMAX',
+            },
+            seatLayout: {
+                type: 'object',
+                properties: {
+                    rowLabels: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        example: ['A', 'B', 'C', 'D', 'E'],
+                    },
+                    seatsPerRow: {
+                        type: 'number',
+                        example: 10,
+                    },
+                },
+            },
+        },
+    },
     Hall: {
         type: 'object',
         properties: {
