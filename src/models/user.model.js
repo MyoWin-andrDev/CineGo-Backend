@@ -14,6 +14,13 @@ const userSchema = new mongoose.Schema({
     emailOtpAttempts: { type: Number, default: 0 },
     emailOtpLastSentAt: { type: Date, default: null },
     emailOtpResendCount: { type: Number, default: 0 },
+    resetOtpHash: { type: String, default: null },
+    resetOtpExpiresAt: { type: Date, default: null },
+    resetOtpAttempts: { type: Number, default: 0 },
+    resetOtpLastSentAt: { type: Date, default: null },
+    resetOtpResendCount: { type: Number, default: 0 },
+    passwordResetToken: { type: String, default: null },
+    passwordResetTokenExpiresAt: { type: Date, default: null },
     googleId: { type: String, unique: true, sparse: true }, // For Google OAuth
     facebookId: { type: String, unique: true, sparse: true }, // For Facebook OAuth
     githubId: { type: String, unique: true, sparse: true }, // For GitHub OAuth

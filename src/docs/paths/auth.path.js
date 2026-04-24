@@ -86,6 +86,119 @@ module.exports = {
                 },
             },
         },
+        '/api/v1/auth/forgot-password': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Request password reset OTP',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Reset code sent to email',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ForgotPasswordResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'Email is required' },
+                    403: { description: 'Email not verified' },
+                    404: { description: 'No account found with this email' },
+                    429: { description: 'Too many reset code requests' },
+                    500: { description: 'Failed to send reset code' },
+                },
+            },
+        },
+        '/api/v1/auth/resend-reset-otp': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Resend password reset OTP',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/ResendResetOtpRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Reset code resent successfully',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ForgotPasswordResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'No active reset request — call forgot-password first' },
+                    403: { description: 'Email not verified' },
+                    404: { description: 'User not found' },
+                    429: { description: 'Cooldown active or max resend limit reached' },
+                    500: { description: 'Failed to send reset code' },
+                },
+            },
+        },
+        '/api/v1/auth/verify-reset-otp': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Verify password reset OTP and get reset token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/VerifyResetOtpRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'OTP verified — reset token issued',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/VerifyResetOtpResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'Invalid or expired reset code' },
+                    404: { description: 'User not found' },
+                    429: { description: 'Too many failed attempts' },
+                    500: { description: 'Server Error' },
+                },
+            },
+        },
+        '/api/v1/auth/reset-password': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Reset password using the reset token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/ResetPasswordRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'Password reset successfully',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ResetPasswordResponse' },
+                            },
+                        },
+                    },
+                    400: { description: 'Invalid or expired reset token / password too short' },
+                    404: { description: 'User not found' },
+                    500: { description: 'Server Error' },
+                },
+            },
+        },
         '/api/v1/auth/login': {
             post: {
                 tags: ['Auth'],

@@ -63,6 +63,44 @@ const sendOtpEmail = async ({ to, otp, expiresInMinutes }) => {
     });
 };
 
+const sendPasswordResetEmail = async ({ to, otp, expiresInMinutes }) => {
+    const from = process.env.SMTP_FROM;
+    const transporter = getTransporter();
+
+    if (!to || !otp) {
+        throw new Error('Invalid password-reset email payload');
+    }
+
+    if (!transporter || !from) {
+        const message = `Password-reset email is not configured. Recipient=${to}, OTP=${otp}`;
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error('SMTP is not configured');
+        }
+        console.warn(message);
+        return;
+    }
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+            <h2 style="margin-bottom: 8px;">CineGo Password Reset</h2>
+            <p>We received a request to reset your password.</p>
+            <p>Your one-time reset code is:</p>
+            <p style="font-size: 24px; letter-spacing: 6px; font-weight: bold;">${otp}</p>
+            <p>This code expires in ${expiresInMinutes} minutes.</p>
+            <p>If you did not request a password reset, you can safely ignore this email.</p>
+        </div>
+    `;
+
+    await transporter.sendMail({
+        from,
+        to,
+        subject: 'Your CineGo password reset code',
+        text: `Your CineGo password reset code is ${otp}. This code expires in ${expiresInMinutes} minutes.`,
+        html
+    });
+};
+
 module.exports = {
-    sendOtpEmail
+    sendOtpEmail,
+    sendPasswordResetEmail
 };

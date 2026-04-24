@@ -26,6 +26,20 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/booking', bookingRouter);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const swaggerCustomJs = `
+(function () {
+    var orig = navigator.clipboard.writeText.bind(navigator.clipboard);
+    navigator.clipboard.writeText = function (text) {
+        if (typeof text === 'string' && text.startsWith('/api/')) {
+            var sel = document.querySelector('.servers select');
+            var base = sel ? sel.value.replace(/\\/$/, '') : window.location.origin;
+            return orig(base + text);
+        }
+        return orig(text);
+    };
+})();
+`;
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customJsStr: swaggerCustomJs }));
 
 module.exports = app;

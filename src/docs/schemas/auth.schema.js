@@ -81,6 +81,73 @@ module.exports = {
             dateOfBirth: { type: 'string', format: 'date', example: '2000-01-01' }
         },
     },
+    ResendResetOtpRequest: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
+        },
+    },
+    ForgotPasswordRequest: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
+        },
+    },
+    ForgotPasswordResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'Password reset code sent to your email' },
+            data: {
+                type: 'object',
+                properties: {
+                    email: { type: 'string', example: 'john@example.com' },
+                    expiresInSec: { type: 'number', example: 300 },
+                    resendAfterSec: { type: 'number', example: 60 },
+                },
+            },
+        },
+    },
+    VerifyResetOtpRequest: {
+        type: 'object',
+        required: ['email', 'otp'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
+            otp: { type: 'string', example: '123456' },
+        },
+    },
+    VerifyResetOtpResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'Reset code verified successfully' },
+            data: {
+                type: 'object',
+                properties: {
+                    resetToken: { type: 'string', example: 'a1b2c3d4...' },
+                    expiresInSec: { type: 'number', example: 600 },
+                },
+            },
+        },
+    },
+    ResetPasswordRequest: {
+        type: 'object',
+        required: ['email', 'resetToken', 'newPassword'],
+        properties: {
+            email: { type: 'string', example: 'john@example.com' },
+            resetToken: { type: 'string', example: 'a1b2c3d4...' },
+            newPassword: { type: 'string', example: 'newpassword123' },
+        },
+    },
+    ResetPasswordResponse: {
+        type: 'object',
+        properties: {
+            con: { type: 'boolean', example: true },
+            msg: { type: 'string', example: 'Password reset successfully. You can now login with your new password.' },
+        },
+    },
     LoginRequest: {
         type: 'object',
         required: ['email', 'password'],
